@@ -9,6 +9,7 @@ class BlockQueue
 {
 public:
 	typedef std::unique_lock<std::mutex> TLock;
+    typedef T type;
  
 	//maxCapacity为-1，代表队列无最大限制
 	explicit BlockQueue(const int maxCapacity = -1):m_maxCapacity(maxCapacity)
@@ -22,13 +23,14 @@ public:
 		return m_list.size();
 	}
  
-	void push_back(const T &item)
+	void push_back(const type &item)
 	{
 		TLock lock(m_mutex);
 		if (true == hasCapacity())
 		{
 			while (m_list.size() >= m_maxCapacity)
 			{
+                // 阻塞，等待队列有空的位置
 				m_notFull.wait(lock);
 			}
 		}
@@ -37,19 +39,21 @@ public:
 		m_notEmpty.notify_all();
 	}
  
-	T pop()
+	type pop()
 	{
 		TLock lock(m_mutex);
 		while (m_list.empty())
 		{
+            // 阻塞，等待队列中有 元素
 			m_notEmpty.wait(lock);
 		}
  
-		T temp = *m_list.begin();
+		type temp = *m_list.begin();
 		m_list.pop_front();
  
 		m_notFull.notify_all();
  
+        // 
 		lock.unlock();
 		return temp;
 	}
@@ -62,7 +66,7 @@ public:
  
 	bool full()
 	{
-		if (false == hasCapacity)
+		if (false == hasCapacity())
 		{
 			return false;
 		}
@@ -77,7 +81,7 @@ private:
 		return m_maxCapacity > 0;
 	}
  
-	typedef std::deque<T> TList;
+	typedef std::deque<type> TList;
 	TList m_list;
  
 	const int m_maxCapacity;
