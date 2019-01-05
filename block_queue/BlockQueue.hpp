@@ -3,6 +3,8 @@
 #include <mutex>
 #include <deque>
 
+#include <stdio.h>
+
 // 模板类
 template<class T>
 class BlockQueue
