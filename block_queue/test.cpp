@@ -33,6 +33,7 @@ int main()
 	std::thread t1(produce, std::ref(queue));
 	std::thread t2(consume, std::ref(queue));
 	std::thread t3(consume, std::ref(queue));
+	
 	t3.join();
 	t2.join();
 	t1.join();
