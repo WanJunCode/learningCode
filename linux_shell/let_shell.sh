@@ -1,4 +1,4 @@
-#/bin/bash
+#/bin/bash -xv
 echo test
 no1=4
 no2=5

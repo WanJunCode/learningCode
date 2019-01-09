@@ -1,0 +1,13 @@
+Script started on 2019-01-08 10:44:05+0800
+]0;wanjun@wanjun-ubuntu: ~/space/gitspace/learningCode/learningCode/linux_shellwanjun@ linux_shell :$ s[Kls
+[0m[01;32marray_shell.sh[0m  [01;32mexec_shell.sh[0m  [01;32mlet_shell.sh[0m    [01;32msleep.sh[0m       timing.log
+[01;32mdebug.sh[0m        [01;32mexist_file.sh[0m  output.session  [01;32mstty_shell.sh[0m
+]0;wanjun@wanjun-ubuntu: ~/space/gitspace/learningCode/learningCode/linux_shellwanjun@ linux_shell :$ mkdir wan
+]0;wanjun@wanjun-ubuntu: ~/space/gitspace/learningCode/learningCode/linux_shellwanjun@ linux_shell :$ rmdir wan
+]0;wanjun@wanjun-ubuntu: ~/space/gitspace/learningCode/learningCode/linux_shellwanjun@ linux_shell :$ ls
+[0m[01;32marray_shell.sh[0m  [01;32mexec_shell.sh[0m  [01;32mlet_shell.sh[0m    [01;32msleep.sh[0m       timing.log
+[01;32mdebug.sh[0m        [01;32mexist_file.sh[0m  output.session  [01;32mstty_shell.sh[0m
+]0;wanjun@wanjun-ubuntu: ~/space/gitspace/learningCode/learningCode/linux_shellwanjun@ linux_shell :$ exit
+exit
+
+Script done on 2019-01-08 10:44:31+0800
