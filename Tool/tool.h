@@ -2,8 +2,9 @@
 #define WANJUN_TOOL_H
 
 #include <stdio.h>
+#include <netinet/in.h>     // sockaddr_in 
 
-namespace Tool{
+namespace NET{
 
     bool isBig();
     // host network change
@@ -18,6 +19,19 @@ namespace Tool{
 
     // 明明 socket
     int socketBind(int sockfd,const char * ip,int port);
+
+    typedef struct remote_client{
+        int clientfd;
+        struct sockaddr_in client_address;
+        remote_client():clientfd(0){
+
+        }
+    } remote_client;
+
+    int socketAccept(int listener);
+    remote_client Accept(int listener);
+    remote_client Connect(const char* ip, int port);
+
 };
 
 

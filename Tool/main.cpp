@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
-using namespace Tool;
+using namespace NET;
 
 static bool stop = false;
 
@@ -16,7 +16,7 @@ static void handle_term(int sig){
 
 int main(int argc, char const *argv[])
 {
-    if(Tool::isBig()){
+    if(isBig()){
         printf("big endian\n");
     }else{
         printf("small endian\n");

@@ -4,11 +4,11 @@
 // socket
 #include <sys/types.h>
 #include <sys/socket.h>
-
+#include <errno.h>
+#include <assert.h>
 #include <string.h>
 
-
-namespace Tool{
+namespace NET{
 
     unsigned long int host2Netlong(unsigned long int hostlong){
         return htonl(hostlong);
@@ -48,14 +48,55 @@ namespace Tool{
         return socket(PF_INET,SOCK_DGRAM,0);
     }
 
-    int socketBind(int sockfd,const char * ip,int port){
+    int socketBind(int sockfd, const char * ip, int port){
         struct sockaddr_in address;
         bzero(&address,sizeof(address));
         address.sin_family = AF_INET;
-        inet_pton(AF_INET,ip,&address.sin_addr);
+        inet_pton(AF_INET, ip, &address.sin_addr);
         address.sin_port = htons(port);
+        return bind(sockfd, (struct sockaddr*)&address, sizeof(address));
+    }
 
-        return bind(sockfd,(struct sockaddr*)&address,sizeof(address));
+    // 快速接收一个 client，
+    int socketAccept(int listener){
+        struct sockaddr_in client;
+        socklen_t client_addrlength = sizeof(client);
+        int clientfd = accept(listener, (struct sockaddr*)&client, &client_addrlength);
+        if(clientfd < 0){
+            printf("errno is: %d\n",errno);
+        }else{
+            char remote[INET_ADDRSTRLEN];
+            printf("%s %d\n",inet_ntop(AF_INET,&client.sin_addr, remote, INET_ADDRSTRLEN), 
+                            ntohs(client.sin_port));
+        }
+        return clientfd;
+    }
+
+    // 返回一个结构体 包含 clientfd client_address
+    remote_client Accept(int listener){
+        remote_client client;
+        socklen_t client_addrlength = sizeof(client.client_address);
+        client.clientfd = accept(listener, (struct sockaddr*)&client.client_address , &client_addrlength);
+        return client;
+    }
+
+    // 封装了 client connection 操作
+    remote_client Connect(const char* ip, int port){
+        remote_client client;
+        bzero(&client.client_address,sizeof(client.client_address));
+        client.client_address.sin_family = AF_INET;
+        inet_pton(AF_INET,ip,&client.client_address.sin_addr);
+        client.client_address.sin_port = htons(port);
+
+        client.clientfd = tcp_socket();
+        assert(client.clientfd);
+        if(0==connect(client.clientfd,(struct sockaddr*)&client.client_address,sizeof(client.client_address))){
+            return client;
+        }else{
+            //  连接失败，返回 clientfd == 0
+            remote_client tmp;
+            return tmp;
+        }
     }
 
 }
