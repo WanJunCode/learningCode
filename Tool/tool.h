@@ -12,6 +12,12 @@ namespace Tool{
     unsigned long int net2Hostlong(unsigned long int netlong);
     unsigned short int net2HostShort(unsigned short int netshort);
 
+    // 调用成功返回一个 socket ，失败返回 -1，并设置 errno
+    int tcp_socket();
+    int udp_socket();
+
+    // 明明 socket
+    int socketBind(int sockfd,const char * ip,int port);
 };
 
 

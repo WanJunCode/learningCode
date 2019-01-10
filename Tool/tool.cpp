@@ -1,5 +1,12 @@
 #include "tool.h"
 #include <netinet/in.h>
+#include <arpa/inet.h>
+// socket
+#include <sys/types.h>
+#include <sys/socket.h>
+
+#include <string.h>
+
 
 namespace Tool{
 
@@ -34,5 +41,21 @@ namespace Tool{
     // 数据大端  数据的低位保存在内存的高地址中
     }
 
+    int tcp_socket(){
+        return socket(PF_INET,SOCK_STREAM,0);
+    }
+    int udp_socket(){
+        return socket(PF_INET,SOCK_DGRAM,0);
+    }
+
+    int socketBind(int sockfd,const char * ip,int port){
+        struct sockaddr_in address;
+        bzero(&address,sizeof(address));
+        address.sin_family = AF_INET;
+        inet_pton(AF_INET,ip,&address.sin_addr);
+        address.sin_port = htons(port);
+
+        return bind(sockfd,(struct sockaddr*)&address,sizeof(address));
+    }
 
 }
