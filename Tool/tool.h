@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <netinet/in.h>     // sockaddr_in 
 
+#include <thread>
+
 namespace NET{
 
     bool isBig();
@@ -31,6 +33,48 @@ namespace NET{
     int socketAccept(int listener);
     remote_client Accept(int listener);
     remote_client Connect(const char* ip, int port);
+
+};
+
+namespace Thread{
+
+    // RAII  Resource Acquisition Is Initialization
+    // 资源获取即初始化
+    class thread_guard
+    {
+        std::thread& t;
+    public:
+        explicit thread_guard(std::thread& t_):
+        t(t_){
+
+        }
+        ~thread_guard(){
+            if(t.joinable()){
+                t.join();
+            }
+        }
+
+        thread_guard(thread_guard const&)=delete;
+        thread_guard& operator=(thread_guard const&)=delete;
+    };
+
+    class Scoped_thread
+    {
+        std::thread t;
+    public:
+        explicit Scoped_thread(std::thread t_):
+            t(std::move(t_)){
+                if(!t.joinable())
+                    throw std::logic_error("No thread");
+            }
+        
+        ~Scoped_thread(){
+            t.join();
+        }
+
+        Scoped_thread(Scoped_thread const&)=delete;
+        Scoped_thread& operator=(Scoped_thread const&)=delete;
+    };
 
 };
 
