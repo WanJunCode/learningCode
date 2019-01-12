@@ -28,14 +28,12 @@ namespace NET{
     int udp_socket();
 
     // 明明 socket
-    int socketBind(int sockfd,const char * ip,int port);
+    int socketBind(int sockfd,const char* ip,int port);
 
     typedef struct remote_client{
         int clientfd;
         struct sockaddr_in client_address;
-        remote_client():clientfd(0){
-
-        }
+        remote_client():clientfd(0){}
     } remote_client;
 
     int socketAccept(int listener);
@@ -53,40 +51,35 @@ namespace Thread{
         std::thread& t;
     public:
         explicit thread_guard(std::thread& t_):
-        t(t_){
-
-        }
+        t(t_){}
         ~thread_guard(){
+            // 析构函数 判断是否可以等待线程结束
             if(t.joinable()){
                 t.join();
             }
         }
-
         thread_guard(thread_guard const&)=delete;
         thread_guard& operator=(thread_guard const&)=delete;
     };
 
-    class Scoped_thread
-    {
-        std::thread t;
+    class Scoped_thread{
     public:
         explicit Scoped_thread(std::thread t_):
             t(std::move(t_)){
                 if(!t.joinable())
                     throw std::logic_error("No thread");
             }
-        
         ~Scoped_thread(){
             t.join();
         }
-
         Scoped_thread(Scoped_thread const&)=delete;
         Scoped_thread& operator=(Scoped_thread const&)=delete;
+    private:
+        std::thread t;
     };
 
     // ========================================================================
     // ========================================================================
-
     template<typename Iterator,typename T>
     struct accumulate_block{
         void operator()(Iterator first,Iterator last,T& result){
@@ -99,9 +92,8 @@ namespace Thread{
         // 获得两个迭代器的长度
         unsigned long const length = std::distance(first,last);
 
-        if(!length){
+        if(!length)
             return init;
-        }
 
         unsigned long const min_per_thread = 25;
         // (20 + 25)  /  25
@@ -139,19 +131,6 @@ namespace Thread{
         std::for_each(threads.begin(), threads.end(), std::mem_fun(&std::thread::join));
         return std::accumulate(results.begin(),results.end(), init);
     }
-
-    // template<typename T>
-    // class threadsafe_stack{
-    // public:
-    //     threadsafe_stack();
-    //     threadsafe_stack(const threadsafe_stack&);
-    //     threadsafe_stack& operator=(const threadsafe_stack&) = delete;
-
-    //     void push(T new_value);
-    //     std::shared_ptr<T> pop();
-    //     void pop(T& value);
-    //     bool empty() const;
-    // };
 
     struct empty_stack: std::exception{
         // throw() 表示不抛出异常
