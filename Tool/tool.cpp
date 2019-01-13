@@ -133,6 +133,4 @@ namespace Thread{
         updata_hierarchy_value();
         return true;
     }
-
-
 }

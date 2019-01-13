@@ -5,7 +5,10 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include <iostream>
 #include <mutex>
+
+#include <future>
 
 using namespace NET;
 
@@ -18,6 +21,17 @@ void init_resoutce(){
 void foo(){
     std::call_once(resource_flag,init_resoutce);
     //other thing...
+}
+
+int find_the_answer(){
+    return 1;
+}
+void do_other_stuff(){
+}
+void std_future(){
+    std::future<int> future = std::async(find_the_answer);
+    do_other_stuff();
+    std::cout<<"result = "<<future.get()<<std::endl;
 }
 
 
