@@ -5,14 +5,33 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
+#include <mutex>
+
 using namespace NET;
+
+// once call 用于延迟初始化
+std::once_flag resource_flag;
+void init_resoutce(){
+
+}
+
+void foo(){
+    std::call_once(resource_flag,init_resoutce);
+    //other thing...
+}
+
 
 static bool stop = false;
 
+int x = 0;
 static void handle_term(int sig){
-    stop = true;
+    if(x++==5){
+        stop = true;
+        printf("退出\n");
+    }else{
+        printf("signal\n");
+    }
 }
-
 
 int main(int argc, char const *argv[])
 {
@@ -22,7 +41,7 @@ int main(int argc, char const *argv[])
         printf("small endian\n");
     }
 
-    signal(SIGTERM,handle_term);
+    signal(SIGINT,handle_term);
 
     int sock = tcp_socket();
 
@@ -35,5 +54,12 @@ int main(int argc, char const *argv[])
     }
 
     close(sock);
+    
+    std::mutex m_mutex;
+    // std::lock_guard<std::mutex> locker(m_mutex);
+    std::unique_lock<std::mutex> locker(m_mutex);
+
+    locker.unlock();
+
     return 0;
 }
