@@ -14,8 +14,12 @@
 #include <condition_variable>
 #include <stack>
 #include <deque>
+#include <list>
 #include <queue>
 #include <climits>
+#include <future>
+#include <type_traits>
+#include <functional>
 
 namespace NET{
 
@@ -257,6 +261,66 @@ namespace Thread{
         void updata_hierarchy_value();
     };
 
+    class move_only{
+    public:
+        move_only();
+        // 移动复制构造函数
+        move_only(move_only&&);
+        move_only(move_only const&) = delete;
+        // 移动赋值构造函数
+        move_only& operator=(move_only&&);
+        move_only& operator=(move_only const&) = delete;
+
+        // 可调用对象
+        void operator()();
+    };
+
+    template<typename F,typename... Args>
+    inline auto real_async(F&& f,Args&&... args)
+    ->std::future<typename std::result_of<F(Args...)>::type>{
+        // std::launch::async  立刻开启线程执行
+        return std::async(std::launch::async,std::forward<F>(f),std::forward<Args>(args)...);
+    }
+
+    // thread detach 执行，　使用　future 获得返回结果
+    template<typename F,typename... Args>
+    auto thread_async(F&& f,Args&&... args)
+    ->std::future<typename std::result_of<F(Args...)>::type>{
+        using return_type = typename std::result_of<F(Args...)>::type;
+        auto func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
+        std::packaged_task<return_type()> task(std::move(func));
+        auto future_ = task.get_future();
+        std::thread thd(std::move(task));
+        thd.detach();
+        return future_;
+    }
+
+};
+
+namespace Algorithm{
+    // 模板函数
+    template<typename T>
+    std::list<T> sequential_quick_sort(std::list<T> input){
+        if(input.empty()){
+            return input;
+        }
+        std::list<T> result;
+        result.splice(result.begin(),input,input.begin());
+        T const& pivot=*result.begin();
+        
+        auto divide_point = std::partition(input.begin(),input.end(),[&](T const& t){return t<pivot;});
+
+        std::list<T> lower_part;
+        lower_part.splice(lower_part.end(),input,input.begin(),divide_point);
+
+        // 递归
+        auto new_lower(sequential_quick_sort(std::move(lower_part)));
+        auto new_higher(sequential_quick_sort(std::move(input)));
+
+        result.splice(result.end(),new_higher);
+        result.splice(result.begin(),new_lower);
+        return result;
+    }
 };
 
 

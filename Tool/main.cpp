@@ -10,7 +10,11 @@
 
 #include <future>
 
+#include "Time.h"
+
+using namespace Time;
 using namespace NET;
+using namespace Thread;
 
 // once call 用于延迟初始化
 std::once_flag resource_flag;
@@ -29,7 +33,8 @@ int find_the_answer(){
 void do_other_stuff(){
 }
 void std_future(){
-    std::future<int> future = std::async(find_the_answer);
+    // deferred 表示函数调用延迟到　wait 或　get 函数调用时才执行
+    std::future<int> future = std::async(std::launch::deferred ,find_the_answer);
     do_other_stuff();
     std::cout<<"result = "<<future.get()<<std::endl;
 }
@@ -47,8 +52,7 @@ static void handle_term(int sig){
     }
 }
 
-int main(int argc, char const *argv[])
-{
+void test1(){
     if(isBig()){
         printf("big endian\n");
     }else{
@@ -74,6 +78,34 @@ int main(int argc, char const *argv[])
     std::unique_lock<std::mutex> locker(m_mutex);
 
     locker.unlock();
+
+}
+
+int test_fun(int a,int b){
+    printf("test \n");
+    return 12;
+}
+
+int main(int argc, char const *argv[]){
+    std::string now = getCurrentSystemTime();
+    printf("now is [%s]\n",now.c_str());
+    Timer timer;
+
+    for(int i=0;i<100000;++i){
+
+    }
+
+    printf("used time is [%f]\n",timer.point());
+    for(int i=0;i<100000;i++){
+    }
+
+    printf("used time is [%f]\n",timer.point());
+
+    int a=12,b=13;
+    // auto result = spawn_task(test_fun,a,b);
+
+    // printf("wait for result\n");
+    // printf("result is [%d]\n",result.get());
 
     return 0;
 }
