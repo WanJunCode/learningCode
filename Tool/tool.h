@@ -34,18 +34,21 @@ namespace NET{
     int tcp_socket();
     int udp_socket();
 
-    // 明明 socket
+    // 命名 socket
     int socketBind(int sockfd,const char* ip,int port);
 
-    typedef struct remote_client{
+    typedef struct remote_client_s{
         int clientfd;
         struct sockaddr_in client_address;
-        remote_client():clientfd(0){}
-    } remote_client;
+        remote_client_s():clientfd(0){}
+    } remote_client_t;
 
     int socketAccept(int listener);
-    remote_client Accept(int listener);
-    remote_client Connect(const char* ip, int port);
+    remote_client_t Accept(int listener);
+
+    // client 端
+    remote_client_t Connect(const char* ip, int port);
+    void Close(remote_client_s clitnt);
 
 };
 
@@ -94,6 +97,7 @@ namespace Thread{
         }
     };
 
+    // 尽量使用 硬件的性能 去并行完成 累加
     template<typename Iterator,typename T>
     T parallel_accumulate(Iterator first,Iterator last,T init){
         // 获得两个迭代器的长度
@@ -146,47 +150,52 @@ namespace Thread{
         }
     };
 
-    // 线程安全栈
+    // 线程安全 栈(先进后出)
     template<typename T>
     class threadsafe_stack{
     private:
-        std::stack<T> data;
+        std::stack<T> m_stack;
         mutable std::mutex m_mutex;
     public:
-        threadsafe_stack():data(std::stack<T>())
-        {}
+        threadsafe_stack():m_stack(std::stack<T>()){
+        }
         // 复制构造函数
         threadsafe_stack(const threadsafe_stack& other){
             std::lock_guard<std::mutex> lock(other.m_mutex);
-            data = other.data;
+            m_stack = other.m_stack;
         }
         // 删除 赋值构造函数
         threadsafe_stack& operator=(const threadsafe_stack&) = delete;
+        // 入栈
         void push(T new_value){
             std::lock_guard<std::mutex> lock(m_mutex);
-            data.push(new_value);
+            m_stack.push(new_value);
         }
+
+        // 出栈 的两种方式
         std::shared_ptr<T> pop(){
             std::lock_guard<std::mutex> lock(m_mutex);
-            if(data.empty())
+            if(m_stack.empty())
                 throw empty_stack();        // 抛出异常
-            std::shared_ptr<T> const result( std::make_shared<T>(data.top()) );
-            data.pop();
+            std::shared_ptr<T> const result( std::make_shared<T>(m_stack.top()) );
+            m_stack.pop();
             return result;
         }
         void pop(T& value){
             std::lock_guard<std::mutex> lock(m_mutex);
-            if(data.empty())
+            if(m_stack.empty())
                 throw empty_stack();        // 抛出异常
-            value = data.top();
-            data.pop();
+            value = m_stack.top();
+            m_stack.pop();
         }
+
         bool empty() const{
             std::lock_guard<std::mutex> lock(m_mutex);
-            return data.empty();            
+            return m_stack.empty();            
         }
     };
 
+    // 线程安全 队列
     template<typename T>
     class threadsafe_queue{
     private:
@@ -194,17 +203,22 @@ namespace Thread{
         std::queue<T> data_queue;
         std::condition_variable m_data_cond;
     public:
-        threadsafe_queue(){}
+        threadsafe_queue(){
+        }
+
         threadsafe_queue(threadsafe_queue const& other){
             std::lock_guard<std::mutex> lock(m_mutex);
             // ? 是否需要锁住 other 的 m_mutex
+            // other.m_mutex.lock();
             data_queue = other.data_queue;
         }
+
         void push(T new_value){
             std::lock_guard<std::mutex> lock(m_mutex);
             data_queue.push(new_value);
             m_data_cond.notify_one();
         }
+
         void wait_and_pop(T& value){
             std::lock_guard<std::mutex> lock(m_mutex);
             m_data_cond.wait(lock,
@@ -212,14 +226,16 @@ namespace Thread{
             value = data_queue.front();
             data_queue.pop();
         }
+
         std::shared_ptr<T> wait_and_pop(){
-            std::unique_lock<std::mutex> lock(m_mutex);
-            m_data_cond.wait(lock, 
+            std::unique_lock<std::mutex> locker(m_mutex);
+            m_data_cond.wait(locker, 
                             [this]{ return !data_queue.empty();});
             std::shared_ptr<T> res(std::make_shared<T>(data_queue.front()));
             data_queue.pop();
             return res;
         }
+
         bool try_pop(T& value){
             std::lock_guard<std::mutex> lock(m_mutex);
             if(data_queue.empty()){
@@ -229,6 +245,7 @@ namespace Thread{
             data_queue.pop();
             return true;
         }
+
         std::shared_ptr<T> try_pop(){
             std::lock_guard<std::mutex> lock(m_mutex);
             if(data_queue.empty()){
@@ -238,6 +255,7 @@ namespace Thread{
             data_queue.pop();
             return result;
         }
+
         bool empty() const{
             std::lock_guard<std::mutex> lock(m_mutex);
             return data_queue.empty();

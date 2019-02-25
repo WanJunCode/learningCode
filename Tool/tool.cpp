@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <string.h>
+#include <unistd.h>
 
 namespace NET{
 
@@ -52,6 +53,7 @@ namespace NET{
         struct sockaddr_in address;
         bzero(&address,sizeof(address));
         address.sin_family = AF_INET;
+        // presentation to network
         inet_pton(AF_INET, ip, &address.sin_addr);
         address.sin_port = htons(port);
         return bind(sockfd, (struct sockaddr*)&address, sizeof(address));
@@ -73,16 +75,16 @@ namespace NET{
     }
 
     // 返回一个结构体 包含 clientfd client_address
-    remote_client Accept(int listener){
-        remote_client client;
+    remote_client_t Accept(int listener){
+        remote_client_t client;
         socklen_t client_addrlength = sizeof(client.client_address);
         client.clientfd = accept(listener, (struct sockaddr*)&client.client_address , &client_addrlength);
         return client;
     }
 
     // 封装了 client connection 操作
-    remote_client Connect(const char* ip, int port){
-        remote_client client;
+    remote_client_t Connect(const char* ip, int port){
+        remote_client_t client;
         bzero(&client.client_address,sizeof(client.client_address));
         client.client_address.sin_family = AF_INET;
         inet_pton(AF_INET,ip,&client.client_address.sin_addr);
@@ -94,9 +96,13 @@ namespace NET{
             return client;
         }else{
             //  连接失败，返回 clientfd == 0
-            remote_client tmp;
+            remote_client_t tmp;
             return tmp;
         }
+    }
+
+    void Close(remote_client_s client){
+        close(client.clientfd);
     }
 
 }

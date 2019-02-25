@@ -1,0 +1,41 @@
+syntax = "proto3";
+package routeguide;
+
+// 坐标
+message Point{
+    int32 latitude = 1;
+    int32 longtitudde = 2;
+}
+
+// 矩形
+message Rectangle{
+    Point lo = 1;
+    Point hi = 2;
+}
+
+// 标记
+message Feature{
+    string name = 1;
+    Point location = 2;
+}
+
+// 路由节点
+message RouteNote{
+    Point location = 1;
+    string message = 2;
+}
+
+// A RouteSummary is received in response to RecordRoute rpc
+message RouteSummary{
+    int32 point_count = 1;          // number of points received.
+    int32 feature_count = 2;        // number of known fetures passed while traversing
+    int32 distance = 3;             // distance covered in metres
+    int32 elapsed_time = 4;         // duration of the traversal
+}
+
+service RouteGuide{
+    rpc GetFuture(Point) returns (Point){}
+    rpc ListFeatures(Rectangle) returns (stream Feature) {}
+    rpc RecordRoute(stream Point) returns (RouteSummary) {}
+    rpc RouteChat(stream RouteNote) returns (stream RouteNote) {}
+}
