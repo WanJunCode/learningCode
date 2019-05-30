@@ -48,8 +48,13 @@ namespace NET{
 
     // client 端
     remote_client_t Connect(const char* ip, int port);
-    void Close(remote_client_s clitnt);
-
+    
+    int Close(remote_client_t clitnt);
+    
+    // howto :
+    // SHUT_RD  SHUT_WR  SHUT_RDWR
+    int Shutdown(remote_client_t client, int howto);
+    
 };
 
 namespace Thread{

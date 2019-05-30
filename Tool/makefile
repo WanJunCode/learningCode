@@ -1,4 +1,4 @@
 all:
 	g++ *.cpp -o main -pthread
 clean:
-	rm -rf main
+	rm -rf main core

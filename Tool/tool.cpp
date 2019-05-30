@@ -4,6 +4,7 @@
 // socket
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/ioctl.h>
 #include <errno.h>
 #include <assert.h>
 #include <string.h>
@@ -101,8 +102,17 @@ namespace NET{
         }
     }
 
-    void Close(remote_client_s client){
+    int Close(remote_client_t client){
         close(client.clientfd);
+    }
+    
+    int Shutdown(remote_client_t client, int howto){
+        shutdown(client.clientfd,howto);
+    }
+
+    int NumInSocket(int sock,int &length){
+        length = 0;
+        return ioctl(sock,FIONREAD,&length);
     }
 
 }
